@@ -63,3 +63,7 @@ repeating tile, or driving `angle` from a timer for a slowly rotating kaleidosco
 
 If **Mirror** does not appear in the filter list, open **Tools → Scripts → Script Log**. A Lua
 syntax error or a shader compile error will be reported there.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
