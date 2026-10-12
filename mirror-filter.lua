@@ -41,7 +41,7 @@ VertData VSDefault(VertData v_in)
 float2 fold_uv(float2 uv)
 {
 	uv = abs(uv);
-	uv = fmod(uv, 2.0);
+	uv = uv - 2.0 * floor(uv * 0.5);   // fmod, but portable to GLSL
 	return min(uv, 2.0 - uv);
 }
 
@@ -63,7 +63,7 @@ float4 PSMirror(VertData v_in) : TARGET
 		// radial fold
 		float r   = length(p);
 		float a   = atan2(p.y, p.x);
-		float seg = 6.283185307 / (float)segments;
+		float seg = 6.283185307 / float(segments);
 		a = a - seg * floor(a / seg);   // [0, seg)
 		a = abs(a - seg * 0.5);         // [0, seg/2]
 		p = float2(cos(a), sin(a)) * r;
