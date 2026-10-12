@@ -9,12 +9,16 @@ radial kaleidoscope mode.
 
 ## Install
 
-1. Download `mirror-filter.lua`.
+1. Download `mirror-filter.lua` and keep it somewhere permanent — e.g. `%APPDATA%\obs-studio\scripts\`
+   on Windows or `~/Library/Application Support/obs-studio/scripts/` on macOS. OBS loads the script
+   from that path on every launch, so a file left in Downloads or a temp folder will silently stop
+   working once it is cleaned up.
 2. In OBS: **Tools → Scripts → `+`** and select the file.
 3. Right-click any source → **Filters → `+` → Mirror**.
 
-Requires an OBS build with Lua scripting enabled (the official builds have it). Nothing runs in
-the background — OBS loads the script and registers the filter type on every launch.
+Works on Windows (Direct3D) and macOS (OpenGL). Requires an OBS build with Lua scripting enabled
+(the official builds have it). Nothing runs in the background — OBS loads the script and registers
+the filter type on every launch.
 
 ## Controls
 
@@ -91,14 +95,24 @@ syntax error or a shader compile error will be reported there.
   transparent — and because the pivot is saved into the scene collection, it stayed that way
   across restarts. `Outside frame` now defaults to `Reflect`, which cannot blank.
 
+**"Mirror: shader failed to compile" on macOS.** Older versions used HLSL-only syntax (a C-style
+`(float)` cast and `fmod`) that OBS's OpenGL backend rejects. Update to the current version. The
+underlying compiler error is written to the OBS log file (Help → Log Files), not the Script Log.
+
+**The filter disappears after restarting OBS.** The script list is saved per scene collection, and
+only when OBS exits cleanly. Check that the script is listed under Tools → Scripts for the active
+collection and that its file still exists at the listed path.
+
 **Quad mode looks like it only folds one way.** Check what you are pointing at. On a test
 pattern made of vertical colour bars there is no vertical variation, so the horizontal fold
 changes nothing visible — it is doing the work, the image just cannot show it. Aim at something
 with detail on both axes.
 
-**Note on logging.** `obs.script_log()` writes only to the Script Log *window*, never to the OBS
-log file on disk, so a misbehaving script filter leaves no trace in `%APPDATA%\obs-studio\logs`.
-When debugging, write to a file directly from the script.
+**Note on logging.** Check both the Script Log window and the OBS log file on disk
+(`%APPDATA%\obs-studio\logs` on Windows, `~/Library/Application Support/obs-studio/logs` on macOS).
+Whether `obs.script_log()` messages reach the log file has varied between setups (OBS 32 on macOS
+writes them as `[Lua: mirror-filter.lua] …`), but graphics errors such as shader compile failures
+only ever appear in the log file. For detailed tracing, write to a file directly from the script.
 
 ## License
 
