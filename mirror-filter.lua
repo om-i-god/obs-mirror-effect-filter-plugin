@@ -118,8 +118,12 @@ end
 --
 -- obs_source_get_base_width returns 0 for async sources -- cameras, media
 -- files, VLC -- which is what made the filter emit an empty frame when it was
--- applied straight to a capture device. Fall back to the rendered size, then
--- to the canvas, so the filter always has something to draw into.
+-- applied straight to a capture device. Fall back to the canvas so the filter
+-- always has something to draw into.
+--
+-- Don't fall back to obs_source_get_width(target): when the target is the
+-- parent source, that asks the top of the filter chain -- this filter's own
+-- get_width -- and recurses.
 local function target_size(data)
 	local target = obs.obs_filter_get_target(data.source)
 	if target == nil then
@@ -128,11 +132,6 @@ local function target_size(data)
 
 	local w = obs.obs_source_get_base_width(target)
 	local h = obs.obs_source_get_base_height(target)
-
-	if w == 0 or h == 0 then
-		w = obs.obs_source_get_width(target)
-		h = obs.obs_source_get_height(target)
-	end
 
 	if w == 0 or h == 0 then
 		local ovi = obs.obs_video_info()
@@ -230,6 +229,20 @@ info.get_properties = function(data)
 	obs.obs_property_list_add_int(e, "Transparent",                2)
 
 	return props
+end
+
+-- The Lua host always installs get_width/get_height for script sources, and
+-- returns 0 when the script doesn't define them. That makes OBS treat the
+-- filtered source as 0x0 -- scene items draw nothing, screenshots and
+-- projectors fail -- so the output goes black. Report the target's size.
+info.get_width = function(data)
+	local w, _ = target_size(data)
+	return w
+end
+
+info.get_height = function(data)
+	local _, h = target_size(data)
+	return h
 end
 
 info.update = function(data, settings)
